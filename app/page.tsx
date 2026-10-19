@@ -1,275 +1,221 @@
 "use client";
 
-import { ArrowDown, ArrowRight, ArrowUpRight, Menu, X } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { Check, Menu, X } from "lucide-react";
 
-const designContract = `<!--
-THESIS: Make the unknown feel close enough to explore; refuse the generic tech hero.
-OWN-WORLD: Ink-blue observatory, warm planetary clay, precise orbit lines, and paper-white type.
-STORY: This is an invitation to explore a fictional field guide; follow the route, then try the demo form.
-FIRST VIEWPORT: Editorial title and actions on the left, a large CSS-built planet and flight annotation on the right.
-FORM: Persuade landing page; image-led split hero with an editorial field-note follow-up. Seed key: unavailable.
--->`;
+const NAV = [
+  { href: "#destinations", label: "Destinations" },
+  { href: "#journey", label: "Journey" },
+  { href: "#launch-list", label: "Launch list" },
+];
 
-const destinations = [
+const DESTINATIONS = [
   {
-    number: "01",
-    name: "The quiet side",
-    detail: "A slower orbit, a wider view.",
-    className: "moon",
+    id: "meridian",
+    name: "Meridian Station",
+    detail: "400 km up. Four-day stays with a window seat on the terminator line.",
+    planet: "planet-ice",
   },
   {
-    number: "02",
-    name: "Blue hour",
-    detail: "Where the horizon keeps going.",
-    className: "blue",
+    id: "ember",
+    name: "Ember Loop",
+    detail: "A looping flyby of the amber gas giant, close enough to see the storm bands.",
+    planet: "planet-ember",
   },
   {
-    number: "03",
-    name: "Farther out",
-    detail: "A little room for the unknown.",
-    className: "amber",
+    id: "halo",
+    name: "Halo Ring Cruise",
+    detail: "A slow, week-long drift along the ice rings with onboard guides.",
+    planet: "planet-halo",
   },
 ];
 
+const STEPS = [
+  { title: "Book", text: "Pick a departure window and a cabin. Pay a deposit, not the full fare." },
+  { title: "Train", text: "Three weekends of ground training, including zero-gravity practice." },
+  { title: "Launch", text: "Board at the coast spaceport. Ascent takes nine minutes." },
+  { title: "Arrive", text: "Dock, unpack, and open the shutters." },
+];
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [joined, setJoined] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitted(true);
-  }
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenuOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
-  function closeMenu() {
-    setMenuOpen(false);
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!EMAIL_PATTERN.test(email.trim())) {
+      setError("Enter an email address like name@example.com.");
+      setJoined(false);
+      return;
+    }
+    setError("");
+    setJoined(true);
   }
 
   return (
-    <main>
-      <template dangerouslySetInnerHTML={{ __html: designContract }} />
-      <header className="site-header">
-        <a
-          className="wordmark"
-          href="#top"
-          aria-label="ORBITAL home"
-          onClick={closeMenu}
-        >
-          <span className="wordmark-symbol" aria-hidden="true">
-            <span />
-          </span>
-          ORBITAL
-        </a>
+    <>
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
 
-        <button
-          className="menu-toggle"
-          type="button"
-          aria-label={menuOpen ? "Close navigation" : "Open navigation"}
-          aria-expanded={menuOpen}
-          aria-controls="primary-navigation"
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          {menuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+      <header className="site-header">
+        <div className="container header-row">
+          <a className="brand" href="#top" aria-label="ORBITAL home">
+            ORBITAL
+          </a>
+
+          <nav className="nav-desktop" aria-label="Primary">
+            {NAV.map((item) => (
+              <a key={item.href} href={item.href}>
+                {item.label}
+              </a>
+            ))}
+          </nav>
+
+          <button
+            type="button"
+            className="menu-button"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
+          </button>
+        </div>
 
         <nav
-          className={`primary-nav${menuOpen ? " is-open" : ""}`}
-          id="primary-navigation"
-          aria-label="Main navigation"
+          id="mobile-nav"
+          className="nav-mobile"
+          aria-label="Mobile"
+          hidden={!menuOpen}
         >
-          <a href="#field-notes" onClick={closeMenu}>
-            Field notes
-          </a>
-          <a href="#about" onClick={closeMenu}>
-            The idea
-          </a>
-          <a className="nav-cta" href="#contact" onClick={closeMenu}>
-            Try the demo <ArrowUpRight size={15} aria-hidden="true" />
-          </a>
+          {NAV.map((item) => (
+            <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+              {item.label}
+            </a>
+          ))}
         </nav>
       </header>
 
-      <section className="hero" id="top" aria-labelledby="hero-title">
-        <div className="hero-copy">
-          <p className="micro-label">
-            <span className="status-dot" aria-hidden="true" />
-            A field guide to elsewhere
-          </p>
-          <h1 id="hero-title">
-            Leave the
-            <br />
-            usual <em>orbit.</em>
-          </h1>
-          <p className="hero-intro">
-            The best way to find a new perspective is to take the long way
-            around. Start somewhere unexpected.
-          </p>
-          <div className="hero-actions">
-            <a className="button button-primary" href="#field-notes">
-              Explore the field notes <ArrowRight size={17} aria-hidden="true" />
-            </a>
-            <a className="text-link" href="#about">
-              Our point of view
-            </a>
-          </div>
-        </div>
-
-        <div
-          className="orbital-scene"
-          role="img"
-          aria-label="Illustration of a planet in orbit"
-        >
-          <div className="scene-grid" aria-hidden="true" />
-          <span className="star star-one" aria-hidden="true" />
-          <span className="star star-two" aria-hidden="true" />
-          <span className="star star-three" aria-hidden="true" />
-          <span className="star star-four" aria-hidden="true" />
-          <span className="star star-five" aria-hidden="true" />
-          <div className="orbit orbit-back" aria-hidden="true" />
-          <div className="planet" aria-hidden="true">
-            <div className="planet-land" />
-          </div>
-          <div className="orbit orbit-front" aria-hidden="true">
-            <span className="orbiting-moon" />
-          </div>
-          <div className="scene-caption scene-caption-top">
-            <span>FIELD STUDY</span>
-            <span>NO. 001</span>
-          </div>
-          <div className="scene-caption scene-caption-bottom">
-            <span className="caption-rule" />
-            <span>
-              A WORLD
-              <br />
-              JUST OUTSIDE
-              <br />
-              THE ORDINARY
-            </span>
-          </div>
-          <span className="scene-coordinates">FIG. 01 — ILLUSTRATIVE</span>
-        </div>
-
-        <a className="scroll-cue" href="#field-notes">
-          <span>Scroll to explore</span>
-          <ArrowDown size={15} aria-hidden="true" />
-        </a>
-      </section>
-
-      <section className="field-notes section-shell" id="field-notes">
-        <div className="section-heading">
-          <div>
-            <p className="micro-label">Three ways to look again</p>
-            <h2>
-              There&apos;s more
-              <br />
-              than one way <em>out.</em>
-            </h2>
-          </div>
-          <p className="section-summary">
-            A collection of imagined places and small reminders to stay
-            curious. These are starting points, not destinations.
-          </p>
-        </div>
-
-        <div className="destination-list">
-          {destinations.map((destination) => (
-            <article className="destination" key={destination.number}>
-              <span className="destination-number">{destination.number}</span>
-              <div className={`destination-planet ${destination.className}`} aria-hidden="true">
-                <span />
+      <main id="main">
+        <section className="hero" id="top">
+          <div className="stars" aria-hidden="true" />
+          <div className="container hero-grid">
+            <div className="hero-copy">
+              <h1>Low orbit, booked like a train.</h1>
+              <p className="lede">
+                ORBITAL sells seats to orbital stations and planetary flybys. Pick a
+                date, train for three weekends, and launch.
+              </p>
+              <div className="hero-actions">
+                <a className="button button-primary" href="#launch-list">
+                  Join the launch list
+                </a>
+                <a className="button button-quiet" href="#destinations">
+                  See destinations
+                </a>
               </div>
-              <div className="destination-copy">
-                <h3>{destination.name}</h3>
-                <p>{destination.detail}</p>
+            </div>
+
+            <div className="hero-art" aria-hidden="true">
+              <div className="planet planet-ember hero-planet" />
+              <div className="hero-ring" />
+              <div className="moon" />
+            </div>
+          </div>
+        </section>
+
+        <section className="section" id="destinations" aria-labelledby="dest-title">
+          <div className="container">
+            <h2 id="dest-title">Three ways to leave the ground</h2>
+            <ul className="dest-grid">
+              {DESTINATIONS.map((d) => (
+                <li key={d.id} className="dest">
+                  <div className={`planet dest-planet ${d.planet}`} aria-hidden="true" />
+                  <h3>{d.name}</h3>
+                  <p>{d.detail}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section className="section section-dusk" id="journey" aria-labelledby="journey-title">
+          <div className="container journey">
+            <h2 id="journey-title">From booking to arrival</h2>
+            <ol className="steps">
+              {STEPS.map((s) => (
+                <li key={s.title}>
+                  <h3>{s.title}</h3>
+                  <p>{s.text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section className="section" id="launch-list" aria-labelledby="list-title">
+          <div className="container signup">
+            <div>
+              <h2 id="list-title">Get the first departure dates</h2>
+              <p className="lede">
+                Leave your email and we will tell you when seats open. This is a demo,
+                so nothing is sent or stored.
+              </p>
+            </div>
+
+            <form className="signup-form" onSubmit={handleSubmit} noValidate>
+              <label htmlFor="email">Email address</label>
+              <div className="field-row">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby="email-status"
+                />
+                <button type="submit" className="button button-primary">
+                  Join the list
+                </button>
               </div>
-              <span className="destination-arrow" aria-hidden="true">
-                <ArrowUpRight size={19} />
-              </span>
-            </article>
-          ))}
-        </div>
-        <p className="illustration-note">All places shown are fictional illustrations.</p>
-      </section>
-
-      <section className="about-section" id="about">
-        <div className="about-art" aria-hidden="true">
-          <div className="about-ring" />
-          <div className="about-world">
-            <span />
+              <p id="email-status" className={error ? "status status-error" : "status"} role="status">
+                {error}
+                {joined && (
+                  <span className="status-ok">
+                    <Check size={16} aria-hidden="true" /> You are on the demo list. Nothing was sent.
+                  </span>
+                )}
+              </p>
+            </form>
           </div>
-          <span className="about-art-label">A NOTE FROM ORBITAL</span>
-        </div>
-        <div className="about-copy">
-          <p className="micro-label">A little more wonder</p>
-          <h2>
-            Curiosity is
-            <br />
-            a good place
-            <br />
-            to <em>begin.</em>
-          </h2>
-          <p>
-            ORBITAL is a small, fictional field guide built around one simple
-            idea: there&apos;s always another perspective worth finding. Take a
-            breath, look up, and see where your attention goes.
-          </p>
-          <a className="text-link text-link-light" href="#contact">
-            Stay in the loop <ArrowRight size={16} aria-hidden="true" />
-          </a>
-        </div>
-      </section>
-
-      <section className="contact-section section-shell" id="contact">
-        <div className="contact-copy">
-          <p className="micro-label">A message from mission control</p>
-          <h2>
-            Keep a little
-            <br />
-            space for <em>wonder.</em>
-          </h2>
-          <p>
-            Try the demo form. It won&apos;t send or save your email—this
-            project has no mailing list behind it.
-          </p>
-        </div>
-        <form className="signup-form" onSubmit={handleSubmit}>
-          <label htmlFor="email">Your email address</label>
-          <div className="input-row">
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              required
-              disabled={submitted}
-            />
-            <button type="submit" disabled={submitted}>
-              {submitted ? "Demo complete" : "Try the demo"}
-              {!submitted && <ArrowRight size={17} aria-hidden="true" />}
-            </button>
-          </div>
-          <p className="form-message" aria-live="polite">
-            {submitted
-              ? "Demo complete — nothing was sent or stored."
-              : "No emails are collected. This form only changes what you see here."}
-          </p>
-        </form>
-      </section>
+        </section>
+      </main>
 
       <footer className="site-footer">
-        <a className="wordmark footer-wordmark" href="#top">
-          <span className="wordmark-symbol" aria-hidden="true">
-            <span />
-          </span>
-          ORBITAL
-        </a>
-        <p>A small invitation to look beyond the usual.</p>
-        <a href="#top" className="back-to-top">
-          Back to top <ArrowUpRight size={14} aria-hidden="true" />
-        </a>
-        <span className="footer-copyright">A fictional field guide · 2026</span>
+        <div className="container footer-row">
+          <span className="brand">ORBITAL</span>
+          <p>
+            A fictional service built to practise deploying with GitHub and Vercel. The
+            signup form runs only in your browser and collects no data.
+          </p>
+        </div>
       </footer>
-    </main>
+    </>
   );
 }
